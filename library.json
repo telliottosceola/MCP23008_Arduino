@@ -1,11 +1,11 @@
 {
-  "name": "Enterprise_Wireless",
-  "keywords": "ncd, Enterprise_Wireless, gateway",
-  "description": "Data packet parser for enterprise wireless devices on NCD Wireless Gateways",
+  "name": "NCD_MCP23008",
+  "keywords": "ncd, mcp23008",
+  "description": "Interface library for MCP23008",
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/telliottosceola/ESP32_Gateway_Enterprise_Wireless.git"
+    "url": "https://github.com/telliottosceola/MCP23008_Arduino.git"
   },
   "authors":
   [
