@@ -1,6 +1,6 @@
 #ifndef MCP23008_H
 #define MCP23008_H
-#include Arduino
+#include <Arduino.h>
 class MCP23008{
 public:
     //Constructor
@@ -74,6 +74,5 @@ private:
     int address = 0x20;
 
     int retrys = 0;
-    Timer timer;
 };
 #endif
