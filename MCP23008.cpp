@@ -148,11 +148,11 @@ int MCP23008::readAllInputs(){
           if(shifted & (1 << i)){
             String evon = String(i);
             evon.concat(" on");
-            Particle.publish("sa/Input Change", evon);
+            // Particle.publish("sa/Input Change", evon);
           }else{
             String evoff = String(i);
             evoff.concat(" off");
-            Particle.publish("sa/Input Change", evoff);
+            // Particle.publish("sa/Input Change", evoff);
           }
         }
       }
@@ -242,7 +242,7 @@ int MCP23008::relayTalk(String command){
         }
     }
     if(op == 4){
-        momentaryRelay(relay, (duration*dur_multi));
+        // momentaryRelay(relay, (duration*dur_multi));
         return 1;
     }
     if(all){
@@ -259,19 +259,19 @@ int MCP23008::relayTalk(String command){
         	message.concat(String(relay));
         	if(op==2 && readRelayStatus(relay)==0){
         		message.concat(" off");
-        		Particle.publish("Relay Action", message);
+        		// Particle.publish("Relay Action", message);
         	}
         	if(op==1 && readRelayStatus(relay)==1){
         		message.concat(" on");
-        		Particle.publish("Relay Action", message);
+        		// Particle.publish("Relay Action", message);
         	}
         	if(op==3){
                 if(readRelayStatus(relay)==0){
                     message.concat(" off");
-                    Particle.publish("Relay Action", message);
+                    // Particle.publish("Relay Action", message);
                 }else{
                     message.concat(" on");
-                    Particle.publish("Relay Action", message);
+                    // Particle.publish("Relay Action", message);
                 }
             }
             if(op == 1 && readRelayStatus(relay)!=1){

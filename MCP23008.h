@@ -1,6 +1,7 @@
 #ifndef MCP23008_H
 #define MCP23008_H
 #include <Arduino.h>
+#include <Wire.h>
 class MCP23008{
 public:
     //Constructor
