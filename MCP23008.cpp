@@ -29,13 +29,17 @@ void MCP23008::setInputs(int map){
     inputMap = map;
 }
 
-void MCP23008::init(){
+void MCP23008::init(int debounce){
+  minTrips = debounce;
     //Start I2C port
     Wire.begin();
     //Open connection to specified address
     sendCommand(0x00, outputMap);
     sendCommand(0x06, inputMap);
     readStatus();
+    for(int i = 0; i < minTrips; i++){
+      loop(false);
+    }
 }
 
 
@@ -162,6 +166,13 @@ int MCP23008::readAllInputs(){
     inputStatus = shifted;
     return shifted;
 }
+
+void MCP23008::relayTimerMillis(int relay, unsigned long milliSeconds){
+  relayTimerStart[relay-1] = millis();
+  relayTimerDuration[relay-1] = milliSeconds;
+  // turnOnRelay(relay);
+}
+
 int MCP23008::sendCommand(int reg){
     return sendCommand(reg, 256);
 }
@@ -191,8 +202,8 @@ int MCP23008::sendCommand(int reg, int cmd){
 int MCP23008::relayTalk(String command){
     int relay=0;
     int op=0;
-    int duration=200;
-    int dur_multi=1;
+    // int duration=200;
+    // int dur_multi=1;
     int p=command.indexOf(" ");
     bool all=false;
     bool relay_next=true;
@@ -229,13 +240,13 @@ int MCP23008::relayTalk(String command){
                         relay = test;
                         relay_next = false;
                     }else{
-                        duration = test;
+                        // duration = test;
                     }
                 }else if(op == 4){
                     if(word.equalsIgnoreCase("seconds") || word.equalsIgnoreCase("second")){
-                        dur_multi = 1000;
+                        // dur_multi = 1000;
                     }else if(word.equalsIgnoreCase("minutes") || word.equalsIgnoreCase("minute")){
-                        dur_multi = 60000;
+                        // dur_multi = 60000;
                     }
                 }
             }
@@ -246,7 +257,7 @@ int MCP23008::relayTalk(String command){
         return 1;
     }
     if(all){
-        int obyte;
+        int obyte = 0;
         if(op == 1) obyte = bankStatus | (~outputMap & 255);
         else if(op == 2) obyte = bankStatus & outputMap;
         else if(op == 3) obyte = ~bankStatus;
@@ -282,4 +293,49 @@ int MCP23008::relayTalk(String command){
         return 1;
     }
     return 0;
+}
+
+void MCP23008::registerInputChangeCallback(void(*inputChangeCallback)(uint8_t channel, uint8_t newState)){
+  _inputChangeCallback = inputChangeCallback;
+}
+
+void MCP23008::loop(bool fireCallback){
+  int status = readAllInputs();
+	int a = 0;
+	for(int i = 1; i < 129; i*=2){
+		if(status & i){
+			debugTrips[a]++;
+			if(debugTrips[a] >= minTrips){
+				if(!tripped[a]){
+					tripped[a] = true;
+					//set input trip event to true
+          if(fireCallback){
+            _inputChangeCallback(a+1, 1);
+          }
+				}
+			}
+		}else{
+			debugTrips[a] = 0;
+			if(tripped[a]){
+        tripped[a] = false;
+        //set input trip event to false
+        if(fireCallback){
+          _inputChangeCallback(a+1, 0);
+        }
+			}
+		}
+		a++;
+	}
+  for(int i = 0; i < 8; i++){
+    if(relayTimerStart[i] != 0){
+      if(millis() >= relayTimerStart[i] + relayTimerDuration[i]){
+        turnOffRelay(i+1);
+        relayTimerStart[i] = 0;
+      }else{
+        if(readRelayStatus(i+1) != 1){
+          turnOnRelay(i+1);
+        }
+      }
+    }
+  }
 }
