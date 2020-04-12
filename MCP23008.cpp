@@ -44,11 +44,11 @@ void MCP23008::init(int debounce){
 
 
 
-void MCP23008::turnOnRelay(int relay){
-  relayOp(relay, 1);
+void MCP23008::turnOnRelay(int relay, bool desired){
+  relayOp(relay, 1, desired);
 }
-void MCP23008::turnOffRelay(int relay){
-  relayOp(relay, 2);
+void MCP23008::turnOffRelay(int relay, bool desired){
+  relayOp(relay, 2, desired);
 }
 void MCP23008::toggleRelay(int relay){
   relayOp(relay, 3);
@@ -65,11 +65,19 @@ void MCP23008::toggleRelay(int relay){
 // void MCP23008::momentaryOff(){
 //     relayOp(_momentaryRelay, 2);
 // }
-void MCP23008::relayOp(int relay, int op){
-    readStatus();
+void MCP23008::relayOp(int relay, int op, bool desired){
+    if(!desired){
+      readStatus();
+    }
     uint8_t rbit = (1<<(relay-1));
     if((outputMap & rbit) > 0) return;
-    setBankStatus(bitop(bankStatus, rbit, op));
+    if(desired){
+      Serial.println("Setting relayDesired");
+      relayDesired = bitop(bankStatus, rbit, op);
+    }else{
+      setBankStatus(bitop(bankStatus, rbit, op));
+    }
+
 }
 uint8_t MCP23008::bitop(uint8_t b1, uint8_t b2, int op){
   if(op == 1) return b1 | b2;
@@ -78,12 +86,20 @@ uint8_t MCP23008::bitop(uint8_t b1, uint8_t b2, int op){
   return 0;
 }
 
-void MCP23008::turnOnAllRelays(){
+void MCP23008::turnOnAllRelays(bool desired){
+  if(desired){
+    relayDesired = 255 ^ outputMap;
+  }else{
     setBankStatus((255 ^ outputMap));
+  }
 }
 
-void MCP23008::turnOffAllRelays(){
-    setBankStatus(bankStatus & outputMap);
+void MCP23008::turnOffAllRelays(bool desired){
+  if(desired){
+    relayDesired = bankStatus & outputMap;
+  }else{
+    setBankStatus((bankStatus & outputMap));
+  }
 }
 
 void MCP23008::setBankStatus(int status){
@@ -300,6 +316,12 @@ void MCP23008::registerInputChangeCallback(void(*inputChangeCallback)(uint8_t ch
 }
 
 void MCP23008::loop(bool fireCallback){
+
+  if(previousDesired != relayDesired){
+    setBankStatus(relayDesired);
+    previousDesired = relayDesired;
+  }
+
   int status = readAllInputs();
 	int a = 0;
 	for(int i = 1; i < 129; i*=2){

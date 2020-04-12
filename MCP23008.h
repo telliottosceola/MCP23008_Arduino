@@ -22,9 +22,9 @@ public:
 
   void init(int debounce = 5);
   //Turn on Relay
-  void turnOnRelay(int relay);
+  void turnOnRelay(int relay, bool desired=false);
   //Turn off Relay
-  void turnOffRelay(int relay);
+  void turnOffRelay(int relay, bool desired=false);
   //Toggle Relay
   void toggleRelay(int relay);
   //momentary relay
@@ -33,9 +33,9 @@ public:
   // void momentaryOff();
 
   //Turn On all Relays
-  void turnOnAllRelays();
+  void turnOnAllRelays(bool desired=false);
   //Turn Off All Relays
-  void turnOffAllRelays();
+  void turnOffAllRelays(bool desired=false);
 
   uint8_t bankStatus;
   //Set status of all relays in bank
@@ -59,10 +59,13 @@ public:
   void registerInputChangeCallback(void(*inputChangeCallback)(uint8_t channel, uint8_t newState));
   void loop(bool fireCallback = true);
 private:
+  uint8_t relayDesired = 0;
+  uint8_t previousDesired = 0;
+
   bool firstInput = true;
 
   uint8_t bitop(uint8_t b1, uint8_t b2, int op);
-  void relayOp(int relay, int op);
+  void relayOp(int relay, int op, bool desired=false);
   //internal use method for refreshing bank status variables
   void readStatus();
   //Status of relays in bank 1
